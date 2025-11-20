@@ -1,0 +1,401 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User Management
+// ============================================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  displayName   String?  @map("display_name")
+  role          UserRole @default(USER)
+  licenseKey    String?  @unique @map("license_key")
+  plan          Plan     @default(FREE)
+  
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  lastLoginAt   DateTime? @map("last_login_at")
+  
+  igAccounts    IgAccount[]
+  themes        Theme[]
+  schedules     Schedule[]
+  auditLogs     AuditLog[]
+  
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum Plan {
+  FREE
+  BASIC
+  BUSINESS
+  ENTERPRISE
+}
+
+// ============================================
+// OAuth State Management (CSRF Protection)
+// ============================================
+
+model OAuthState {
+  id                String   @id @default(uuid())
+  state             String   @unique
+  userId            String   @map("user_id")
+  expiresAt         DateTime @map("expires_at")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  @@index([state])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("oauth_states")
+}
+
+// ============================================
+// Instagram Account Management
+// ============================================
+
+model IgAccount {
+  id                    String   @id @default(uuid())
+  userId                String   @map("user_id")
+  
+  igUserId              String   @unique @map("ig_user_id")
+  username              String
+  profilePictureUrl     String?  @map("profile_pic_url")
+  followersCount        Int?     @map("followers_count")
+  
+  accessToken           String   @map("access_token") // AES-256-GCM encrypted
+  tokenExpiresAt        DateTime @map("token_expires_at")
+  refreshToken          String?  @map("refresh_token") // encrypted
+  
+  isActive              Boolean  @default(true) @map("is_active")
+  lastSyncAt            DateTime? @map("last_sync_at")
+  
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts                 Post[]
+  insights              Insight[]
+  
+  @@index([userId])
+  @@map("ig_accounts")
+}
+
+// ============================================
+// Theme Management (Google Drive Folders)
+// ============================================
+
+model Theme {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  
+  name              String
+  description       String?
+  driveFolderId     String   @map("drive_folder_id")
+  driveWebViewLink  String?  @map("drive_webview_link")
+  
+  isActive          Boolean  @default(true) @map("is_active")
+  lastSyncAt        DateTime? @map("last_sync_at")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  schedules         Schedule[]
+  mediaAssets       MediaAsset[]
+  
+  @@index([userId])
+  @@map("themes")
+}
+
+// ============================================
+// Posting Schedule Management
+// ============================================
+
+model Schedule {
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  themeId           String   @map("theme_id")
+  
+  name              String
+  description       String?
+  
+  targetAccounts    String[] @map("target_accounts") // Array of IgAccount IDs
+  postType          PostType @map("post_type")
+  
+  scheduledTime     DateTime @map("scheduled_time")
+  timezone          String   @default("Asia/Tokyo")
+  
+  caption           String?
+  hashtags          String[]
+  location          String?
+  
+  isRecurring       Boolean  @default(false) @map("is_recurring")
+  recurringPattern  String?  @map("recurring_pattern") // Cron expression
+  
+  status            ScheduleStatus @default(PENDING)
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme             Theme    @relation(fields: [themeId], references: [id], onDelete: Restrict)
+  posts             Post[]
+  
+  @@index([userId])
+  @@index([scheduledTime])
+  @@index([status])
+  @@map("schedules")
+}
+
+enum PostType {
+  IMAGE
+  VIDEO
+  REEL
+  CAROUSEL
+}
+
+enum ScheduleStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// ============================================
+// Post Execution Records
+// ============================================
+
+model Post {
+  id                String   @id @default(uuid())
+  scheduleId        String   @map("schedule_id")
+  igAccountId       String   @map("ig_account_id")
+  
+  igMediaId         String?  @unique @map("ig_media_id") // Instagram media ID
+  permalink         String?
+  
+  mediaAssetId      String?  @map("media_asset_id")
+  caption           String?
+  hashtags          String[]
+  
+  postType          PostType @map("post_type")
+  status            PostStatus @default(QUEUED)
+  
+  scheduledFor      DateTime @map("scheduled_for")
+  publishedAt       DateTime? @map("published_at")
+  
+  errorMessage      String?  @map("error_message")
+  retryCount        Int      @default(0) @map("retry_count")
+  
+  mediaHash         String?  @map("media_hash") // SHA-256 for duplicate detection
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  schedule          Schedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  igAccount         IgAccount @relation(fields: [igAccountId], references: [id], onDelete: Cascade)
+  mediaAsset        MediaAsset? @relation(fields: [mediaAssetId], references: [id])
+  
+  @@index([igAccountId])
+  @@index([scheduleId])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([mediaHash])
+  @@map("posts")
+}
+
+enum PostStatus {
+  QUEUED
+  PROCESSING
+  ENCODING
+  PUBLISHED
+  FAILED
+  DUPLICATE
+}
+
+// ============================================
+// Instagram Insights/Analytics
+// ============================================
+
+model Insight {
+  id                String   @id @default(uuid())
+  igAccountId       String   @map("ig_account_id")
+  igMediaId         String   @map("ig_media_id")
+  
+  impressions       Int      @default(0)
+  reach             Int      @default(0)
+  engagement        Int      @default(0)
+  likes             Int      @default(0)
+  comments          Int      @default(0)
+  saves             Int      @default(0)
+  shares            Int      @default(0)
+  
+  videoViews        Int?     @map("video_views")
+  
+  collectedAt       DateTime @default(now()) @map("collected_at")
+  periodStart       DateTime @map("period_start")
+  periodEnd         DateTime @map("period_end")
+  
+  rawData           Json?    @map("raw_data") // Full API response
+  
+  igAccount         IgAccount @relation(fields: [igAccountId], references: [id], onDelete: Cascade)
+  
+  @@unique([igMediaId, collectedAt])
+  @@index([igAccountId])
+  @@index([collectedAt])
+  @@map("insights")
+}
+
+// ============================================
+// Media Assets from Google Drive
+// ============================================
+
+model MediaAsset {
+  id                String   @id @default(uuid())
+  themeId           String   @map("theme_id")
+  
+  driveFileId       String   @unique @map("drive_file_id")
+  fileName          String   @map("file_name")
+  mimeType          String   @map("mime_type")
+  fileSize          BigInt   @map("file_size")
+  
+  thumbnailUrl      String?  @map("thumbnail_url")
+  webViewLink       String?  @map("web_view_link")
+  
+  width             Int?
+  height            Int?
+  duration          Int?     // seconds for videos
+  
+  mediaHash         String?  @map("media_hash") // SHA-256
+  
+  isUsed            Boolean  @default(false) @map("is_used")
+  lastUsedAt        DateTime? @map("last_used_at")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  theme             Theme    @relation(fields: [themeId], references: [id], onDelete: Cascade)
+  posts             Post[]
+  
+  @@index([themeId])
+  @@index([mediaHash])
+  @@map("media_assets")
+}
+
+// ============================================
+// License Management
+// ============================================
+
+model License {
+  id                String   @id @default(uuid())
+  
+  licenseKey        String   @unique @map("license_key")
+  email             String
+  plan              Plan
+  
+  maxAccounts       Int      @map("max_accounts")
+  maxSchedules      Int      @map("max_schedules")
+  maxPostsPerDay    Int      @map("max_posts_per_day")
+  
+  isActive          Boolean  @default(true) @map("is_active")
+  
+  validFrom         DateTime @map("valid_from")
+  validUntil        DateTime @map("valid_until")
+  
+  sheetRowNumber    Int?     @unique @map("sheet_row_number") // Google Sheets row reference
+  
+  lastSyncedAt      DateTime? @map("last_synced_at")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@index([email])
+  @@index([validUntil])
+  @@map("licenses")
+}
+
+// ============================================
+// Audit Logging
+// ============================================
+
+model AuditLog {
+  id                String   @id @default(uuid())
+  userId            String?  @map("user_id")
+  
+  action            String   // e.g., "USER_LOGIN", "POST_PUBLISHED", "ACCOUNT_CONNECTED"
+  resourceType      String?  @map("resource_type") // e.g., "IgAccount", "Post"
+  resourceId        String?  @map("resource_id")
+  
+  ipAddress         String?  @map("ip_address")
+  userAgent         String?  @map("user_agent")
+  
+  metadata          Json?    // Additional context
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  
+  user              User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============================================
+// Job Queue State (optional, BullMQ uses Redis)
+// ============================================
+
+model JobQueue {
+  id                String   @id @default(uuid())
+  
+  queueName         String   @map("queue_name") // "publish", "insights", "scheduler"
+  jobId             String   @unique @map("job_id") // BullMQ job ID
+  jobType           String   @map("job_type")
+  
+  status            JobStatus @default(WAITING)
+  
+  data              Json?    // Job payload
+  result            Json?    // Job result
+  error             String?
+  
+  attempts          Int      @default(0)
+  maxAttempts       Int      @default(3) @map("max_attempts")
+  
+  processedAt       DateTime? @map("processed_at")
+  completedAt       DateTime? @map("completed_at")
+  failedAt          DateTime? @map("failed_at")
+  
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  
+  @@index([queueName])
+  @@index([status])
+  @@index([createdAt])
+  @@map("job_queue")
+}
+
+enum JobStatus {
+  WAITING
+  ACTIVE
+  COMPLETED
+  FAILED
+  DELAYED
+  PAUSED
+}
