@@ -1,206 +1,173 @@
-# 🔑 Meta Developer Setup Guide
+---
+# 🔑 Meta（Facebook）開発者セットアップガイド
 
-How to create a Meta/Facebook App for Instagram posting.
+Instagram の投稿連携に必要な Meta / Facebook アプリの作成手順を日本語でまとめたガイドです。
 
-## What You Need
+## 必要なもの
 
-- Facebook account
-- Instagram Business account (convert from Settings → Account → Switch to Professional Account)
-- Facebook Page connected to your Instagram
+- Facebook アカウント
+- Instagram ビジネスアカウント（Instagram の設定 → アカウント → プロアカウントに切り替え）
+- Instagram が接続された Facebook ページ
 
 ---
 
-## Step 1: Create Meta App
+## ステップ 1：Meta アプリを作成する
 
-1. Go to: https://developers.facebook.com
-2. Click **"My Apps"** in top right
-3. Click **"Create App"**
-4. Select **"Business"** type → Click **"Next"**
-5. Fill in:
-   - **App Name**: "Instagram AutoPoster" (or any name)
-   - **App Contact Email**: your email
-   - Click **"Create App"**
-
----
-
-## Step 2: Add Instagram Basic Display
-
-1. In your app dashboard, scroll to **"Add Products"**
-2. Find **"Instagram Basic Display"** → Click **"Set Up"**
-3. Scroll down to **"User Token Generator"**
-4. Click **"Add or Remove Instagram Testers"**
-5. Click **"Add Instagram Testers"**
-6. Enter your Instagram username → Click **"Submit"**
-7. Go to your Instagram app → Settings → Apps and Websites
-8. Accept the tester invite
+1. https://developers.facebook.com にアクセス
+2. 右上の「My Apps」をクリック
+3. 「Create App」をクリック
+4. 「Business」タイプを選択して「Next」をクリック
+5. 必要事項を入力：
+   - App Name（例）: Instagram AutoPoster
+   - App Contact Email: ご自身のメールアドレス
+   - 「Create App」をクリック
 
 ---
 
-## Step 3: Configure Instagram Graph API
+## ステップ 2：Instagram Basic Display を追加する
 
-1. In app dashboard, find **"Instagram Graph API"** → Click **"Set Up"**
-2. (If not available, add **"Instagram Basic Display"** first)
-3. In the left menu, click **"App Settings"** → **"Basic"**
-4. Copy these values (you'll need them):
-   - **App ID**: `1234567890` (example)
-   - **App Secret**: Click **"Show"** → Copy the secret
-
----
-
-## Step 4: Add Redirect URIs
-
-1. Still in **"Basic"** settings, scroll to **"App Domains"**
-2. Add: `localhost`
-3. Scroll to **"Website"** → Click **"Add Platform"** → **"Website"**
-4. Site URL: `http://localhost:3000`
-5. In **Instagram Graph API** settings:
-   - Find **"OAuth Redirect URIs"** (or "Valid OAuth Redirect URIs")
-   - Add these URLs:
-     ```
-     http://localhost:3000/api/v1/auth/instagram/callback
-     https://YOUR_NGROK_URL/api/v1/auth/instagram/callback
-     ```
-     (Replace YOUR_NGROK_URL with your ngrok URL from installation)
-6. Click **"Save Changes"**
+1. アプリダッシュボードで「Add Products」に移動
+2. 「Instagram Basic Display」を探して「Set Up」をクリック
+3. 下にスクロールして「User Token Generator」を確認
+4. 「Add or Remove Instagram Testers」をクリック
+5. 「Add Instagram Testers」をクリック
+6. Instagram のユーザー名を入力して「Submit」をクリック
+7. Instagram アプリ側で「設定」→「Apps and Websites」へ行き、テスター招待を承認
 
 ---
 
-## Step 5: Get Permissions
+## ステップ 3：Instagram Graph API の設定
 
-1. In left menu, click **"App Review"** → **"Permissions and Features"**
-2. Request these permissions:
-   - `instagram_basic` → Click **"Get Advanced Access"**
-   - `instagram_content_publish` → Click **"Get Advanced Access"**
-   - `pages_read_engagement` → Click **"Get Advanced Access"**
-   - `pages_show_list` → Click **"Get Advanced Access"**
-   - `instagram_manage_insights` → Click **"Get Advanced Access"**
-
-**Note:** For development, "Standard Access" is enough. For production with multiple users, you need "Advanced Access" (requires app review).
+1. アプリダッシュボードで「Instagram Graph API」を見つけて「Set Up」をクリック（表示されない場合は先に Instagram Basic Display を追加）
+2. 左メニューの「Settings」→「Basic」を開く
+3. 以下の値を控えておく（後で .env に設定します）:
+   - App ID
+   - App Secret（「Show」をクリックして表示）
 
 ---
 
-## Step 6: Make App Live
+## ステップ 4：リダイレクト URI を追加する
 
-1. In top right, switch app mode from **"Development"** to **"Live"**
-2. If it asks for **Privacy Policy URL**:
-   - You can use a temporary one: `https://www.termsfeed.com/privacy-policy-generator/`
-   - Or: `http://localhost:3000/privacy` (create a simple page)
-3. Click **"Switch Mode"**
-
----
-
-## Step 7: Setup Google Cloud (for Google Drive)
-
-1. Go to: https://console.cloud.google.com
-2. Click **"Select a project"** → **"New Project"**
-3. Name: "Instagram AutoPoster" → Click **"Create"**
-4. In the dashboard, click **"APIs & Services"** → **"Enable APIs and Services"**
-5. Search and enable:
-   - **Google Drive API** → Click **"Enable"**
-   - **Google Sheets API** → Click **"Enable"** (optional, for licenses)
-6. Click **"Create Credentials"** → **"OAuth client ID"**
-7. Configure consent screen:
-   - User Type: **External** → Click **"Create"**
-   - App name: "Instagram AutoPoster"
-   - User support email: your email
-   - Developer contact: your email
-   - Click **"Save and Continue"** through all steps
-8. Back to **"Create Credentials"** → **"OAuth client ID"**
-   - Application type: **Web application**
-   - Name: "AutoPoster Backend"
-   - Authorized redirect URIs:
-     ```
-     http://localhost:3000/api/v1/auth/google/callback
-     https://YOUR_NGROK_URL/api/v1/auth/google/callback
-     ```
-   - Click **"Create"**
-9. Copy:
-   - **Client ID**: `1234567890-abc123.apps.googleusercontent.com`
-   - **Client Secret**: `GOCSPX-abc123xyz`
+1. 「Basic」設定の「App Domains」に `localhost` を追加
+2. 「Add Platform」→「Website」を選び、Site URL を `http://localhost:3000` に設定
+3. Instagram Graph API の設定で「OAuth Redirect URIs（Valid OAuth Redirect URIs）」を探し、以下を追加：
+```
+http://localhost:3000/api/v1/auth/instagram/callback
+https://YOUR_NGROK_URL/api/v1/auth/instagram/callback
+```
+※ YOUR_NGROK_URL は ngrok の HTTPS URL に置き換えてください
+4. 変更を保存（Save Changes）
 
 ---
 
-## Step 8: Add Credentials to .env File
+## ステップ 5：必要な権限（Permissions）を取得する
 
-Update your `backend/.env` file:
+1. 左メニューの「App Review」→「Permissions and Features」を開く
+2. 開発時に最低限必要な権限（例）：
+   - `instagram_basic`
+   - `instagram_content_publish`
+   - `pages_read_engagement`
+   - `pages_show_list`
+   - `instagram_manage_insights`
+
+※ 開発や自分だけのテストであれば標準権限（Standard Access）で足ります。複数ユーザー向けの本番運用では「Advanced Access（アプリ審査）」が必要です。
+
+---
+
+## ステップ 6：アプリを公開モードに切り替える（Live にする）
+
+1. 右上のモードを「Development」から「Live」に切り替え
+2. Privacy Policy URL を求められた場合は一時的に以下を使用できます：
+   - `https://www.termsfeed.com/privacy-policy-generator/`（テンプレ）
+   - または `http://localhost:3000/privacy`（簡易ページを自分で作成）
+3. モードを切り替え（Switch Mode）
+
+---
+
+## ステップ 7：Google Cloud（Google Drive 用）を設定する
+
+1. https://console.cloud.google.com にアクセス
+2. 「Select a project」→「New Project」から新規プロジェクトを作成（例：Instagram AutoPoster）
+3. ダッシュボードで「APIs & Services」→「Enable APIs and Services」を選択
+4. 有効化する API：
+   - Google Drive API
+   - Google Sheets API（認証やライセンス管理で必要な場合）
+5. 「Create Credentials」→「OAuth client ID」を選択し、OAuth 同意画面を設定
+6. OAuth クライアントを作成（Application type: Web application）し、Authorized redirect URIs に以下を追加：
+```
+http://localhost:3000/api/v1/auth/google/callback
+https://YOUR_NGROK_URL/api/v1/auth/google/callback
+```
+7. 作成後に表示される Client ID と Client Secret を控える
+
+---
+
+## ステップ 8：取得した情報を `.env` に追加する
+
+`backend/.env` に次のように設定してください（例）：
 
 ```env
-# Meta/Instagram
-META_APP_ID="1234567890"
-META_APP_SECRET="abc123xyz789"
+# Meta / Instagram
+META_APP_ID="<あなたの_APP_ID>"
+META_APP_SECRET="<あなたの_APP_SECRET>"
 META_REDIRECT_URI="https://YOUR_NGROK_URL/api/v1/auth/instagram/callback"
 
 # Google
-GOOGLE_CLIENT_ID="1234567890-abc123.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="GOCSPX-abc123xyz"
+GOOGLE_CLIENT_ID="<あなたの_GOOGLE_CLIENT_ID>"
+GOOGLE_CLIENT_SECRET="<あなたの_GOOGLE_CLIENT_SECRET>"
 GOOGLE_REDIRECT_URI="https://YOUR_NGROK_URL/api/v1/auth/google/callback"
 ```
 
-**Important:** Replace `YOUR_NGROK_URL` with your actual ngrok URL (example: `https://abc123.ngrok.io`)
+`YOUR_NGROK_URL` は実際の ngrok の HTTPS URL に置き換えてください（例：`https://abc123.ngrok.io`）。
 
 ---
 
-## ✅ Setup Complete!
+## ✅ セットアップ完了
 
-Your Meta App is ready to use with Instagram!
-
-### Example Values:
-
-```env
-# Example (DO NOT USE THESE - use your own!)
-META_APP_ID="123456789012345"
-META_APP_SECRET="a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
-META_REDIRECT_URI="https://abc123.ngrok.io/api/v1/auth/instagram/callback"
-
-GOOGLE_CLIENT_ID="123456789012-abcdefghijklmnop.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="GOCSPX-1A2B3C4D5E6F7G8H9I0J"
-GOOGLE_REDIRECT_URI="https://abc123.ngrok.io/api/v1/auth/google/callback"
-```
+上記が完了すれば、Meta アプリ（Instagram 用）の基本設定は整っています。
 
 ---
 
-## 🔍 Troubleshooting
+## 🔍 トラブルシューティング
 
-### "Redirect URI mismatch" error
-- Make sure ngrok URL in .env matches the one in Meta App settings
-- Check both http://localhost:3000 AND https://ngrok-url are added
-- Restart backend after changing .env
+### 「Redirect URI mismatch（リダイレクト URI が一致しない）」エラー
+- `.env` に入れた ngrok の URL と Meta アプリの設定が一致しているか確認
+- `http://localhost:3000` と `https://ngrok-url` の両方を追加しておく
+- .env を変更したらバックエンドを再起動
 
-### "Invalid App ID" error
-- Check META_APP_ID matches exactly (no spaces)
-- Make sure app is in "Live" mode, not "Development"
+### 「Invalid App ID（無効な App ID）」エラー
+- META_APP_ID が正しく入力されているか（余分な空白が入っていないか）を確認
+- アプリが Development モードになっていないか確認（本番は Live）
 
-### Can't connect Instagram account
-- Make sure Instagram account is a Business or Creator account
-- Make sure Instagram is connected to a Facebook Page
-- Check permissions are granted in Meta App
+### Instagram に接続できない
+- Instagram アカウントが Business か Creator になっているか
+- Instagram が Facebook ページに接続されているか
+- 必要な権限が許可されているか
 
-### Google Drive not working
-- Make sure Google Drive API is enabled in Google Cloud Console
-- Check GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are correct
-- Make sure redirect URI matches exactly
-
----
-
-## 📸 Where to Find Things:
-
-### Meta App ID & Secret:
-1. Go to: https://developers.facebook.com/apps
-2. Click your app
-3. Click "Settings" → "Basic"
-4. See "App ID" and "App Secret"
-
-### Instagram Permissions:
-1. Go to: https://developers.facebook.com/apps
-2. Click your app
-3. Click "App Review" → "Permissions and Features"
-
-### Google Credentials:
-1. Go to: https://console.cloud.google.com
-2. Click your project
-3. Click "APIs & Services" → "Credentials"
-4. See your OAuth 2.0 Client IDs
+### Google Drive が動作しない
+- Google Drive API が有効化されているか
+- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET が正しいか
+- リダイレクト URI が一致しているか
 
 ---
 
-**Done!** You can now connect Instagram accounts in the app.
+## 📸 関連情報の確認場所
+
+### Meta アプリ ID / Secret の確認
+1. https://developers.facebook.com/apps にアクセス
+2. 対象のアプリを選択
+3. 「Settings」→「Basic」で App ID / App Secret を確認
+
+### Instagram の権限確認
+1. https://developers.facebook.com/apps にアクセス
+2. 対象のアプリを選択
+3. 「App Review」→「Permissions and Features」を確認
+
+### Google の認証情報確認
+1. https://console.cloud.google.com にアクセス
+2. 該当プロジェクトを選択
+3. 「APIs & Services」→「Credentials」で OAuth 2.0 クライアントを確認
+
+---
+
+完了しました。これでアプリから Instagram を接続できるはずです。

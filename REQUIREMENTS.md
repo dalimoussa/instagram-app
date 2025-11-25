@@ -1,123 +1,98 @@
-# 📦 System Requirements
+---
+# 📦 システム要件（Requirements）
 
-## Required Software
+このドキュメントでは、開発環境および実行に必要なソフトウェア、外部サービス、最小要件をまとめています。
+
+## 必要なソフトウェア
 
 ### 1. Node.js
-- **Version**: 20.x LTS or newer
-- **Download**: https://nodejs.org
-- **Purpose**: Runs the backend and frontend
+- **バージョン**: 20.x LTS 以上を推奨
+- **ダウンロード**: https://nodejs.org
+- **用途**: バックエンドとフロントエンドの実行
 
 ### 2. PostgreSQL
-- **Version**: 15.x or newer
-- **Download**: https://www.postgresql.org/download/
-- **Purpose**: Database for storing accounts, posts, schedules
+- **バージョン**: 15.x 以上を推奨
+- **ダウンロード**: https://www.postgresql.org/download/
+- **用途**: アカウント、投稿、スケジュール等のデータ格納
 
 ### 3. Redis
-- **Version**: 7.x or newer
-- **Download**: 
+- **バージョン**: 7.x 以上を推奨
+- **インストール方法**:
   - Windows: https://github.com/tporadowski/redis/releases
-  - Mac: `brew install redis`
+  - macOS: `brew install redis`
   - Linux: `sudo apt-get install redis-server`
-- **Purpose**: Queue system for background jobs
+- **用途**: バックグラウンドジョブのキュー処理
 
-### 4. Ngrok
-- **Version**: Latest
-- **Download**: https://ngrok.com/download
-- **Purpose**: Creates public URL for Instagram OAuth callbacks
-- **Note**: Free account required
-
----
-
-## npm Packages (Auto-installed)
-
-When you run `npm install`, these are automatically installed:
-
-### Backend Dependencies:
-```
-@nestjs/common@^10.0.0
-@nestjs/core@^10.0.0
-@nestjs/platform-express@^10.0.0
-@prisma/client@^5.0.0
-bull@^4.11.0
-redis@^4.6.0
-bcrypt@^5.1.0
-jsonwebtoken@^9.0.0
-axios@^1.6.0
-sharp@^0.33.0
-dotenv@^16.3.0
-```
-
-### Frontend Dependencies:
-```
-react@^19.0.0
-react-dom@^19.0.0
-react-router-dom@^6.20.0
-@tanstack/react-query@^5.0.0
-zustand@^4.4.0
-recharts@^2.10.0
-lucide-react@^0.300.0
-tailwindcss@^3.4.0
-axios@^1.6.0
-```
+### 4. ngrok
+- **バージョン**: 最新
+- **ダウンロード**: https://ngrok.com/download
+- **用途**: 開発環境で公開 URL を作成し、Instagram OAuth コールバックを受けるために使用
 
 ---
 
-## External Services (Free Accounts)
+## npm パッケージ（`npm install` で自動導入）
 
-### 1. Meta Developer Account
-- **Website**: https://developers.facebook.com
-- **Purpose**: Instagram Graph API access
-- **Cost**: Free
-- **Setup**: See `META_SETUP.md`
+バックエンド・フロントエンドを `npm install` した際にインストールされる主要な依存ライブラリの例：
 
-### 2. Google Cloud Platform
-- **Website**: https://console.cloud.google.com
-- **Purpose**: Google Drive API & Google Sheets API
-- **Cost**: Free tier (enough for this app)
-- **Setup**: See `META_SETUP.md`
+### バックエンドの主な依存関係（例）
+`@nestjs/*`, `@prisma/client`, `bull`, `redis`, `bcrypt`, `jsonwebtoken`, `axios`, `sharp`, `dotenv` など
 
-### 3. Cloudinary (Optional)
-- **Website**: https://cloudinary.com
-- **Purpose**: Image/video hosting
-- **Cost**: Free tier (25 GB storage)
-- **Alternative**: Can use local storage or AWS S3
+### フロントエンドの主な依存関係（例）
+`react`, `react-dom`, `react-router-dom`, `@tanstack/react-query`, `zustand`, `recharts`, `tailwindcss`, `axios` など
+
+（実際のバージョンは `package.json` を参照してください）
 
 ---
 
-## Minimum System Requirements
+## 外部サービス（無料プランで利用可能）
 
-- **OS**: Windows 10+, macOS 11+, or Linux (Ubuntu 20.04+)
-- **RAM**: 4 GB minimum (8 GB recommended)
-- **Disk Space**: 2 GB free space
-- **CPU**: Any modern processor
-- **Internet**: Stable broadband connection
+### Meta Developer（Facebook）
+- **サイト**: https://developers.facebook.com
+- **用途**: Instagram Graph API の利用
+- **備考**: 本番運用で複数ユーザーをサポートする場合は権限申請（App Review）が必要
 
----
+### Google Cloud Platform
+- **サイト**: https://console.cloud.google.com
+- **用途**: Google Drive API / Google Sheets API
 
-## Port Requirements
-
-Make sure these ports are available:
-
-- **3000**: Backend API server
-- **5173**: Frontend development server
-- **5432**: PostgreSQL database
-- **6379**: Redis server
+### Cloudinary（任意）
+- **サイト**: https://cloudinary.com
+- **用途**: 画像・動画のホスティング（任意）
 
 ---
 
-## Installation Order
+## 最小システム要件
 
-1. ✅ Install Node.js
-2. ✅ Install PostgreSQL
-3. ✅ Install Redis
-4. ✅ Install Ngrok
-5. ✅ Create Meta Developer account
-6. ✅ Create Google Cloud account
-7. ✅ Run `npm install` in backend folder
-8. ✅ Run `npm install` in frontend folder
-9. ✅ Setup database (see `INSTALLATION.md`)
-10. ✅ Configure .env files (see `INSTALLATION.md`)
+- **OS**: Windows 10 以降 / macOS 11 以降 / Linux（Ubuntu 20.04 以上）
+- **メモリ**: 最小 4 GB（推奨 8 GB）
+- **ディスク空き容量**: 最小 2 GB
+- **CPU**: 現代的なプロセッサ
+- **ネットワーク**: 安定したブロードバンド接続
 
 ---
 
-**See `INSTALLATION.md` for detailed installation instructions.**
+## 使用するポート
+
+以下のポートが使用可能であることを確認してください：
+
+- **3000**: バックエンド API
+- **5173**: フロントエンド（Vite）
+- **5432**: PostgreSQL
+- **6379**: Redis
+
+---
+
+## 推奨されるセットアップ順序
+
+1. Node.js をインストール
+2. PostgreSQL をインストール・起動
+3. Redis をインストール・起動
+4. ngrok をインストール・設定
+5. Meta Developer と Google Cloud のプロジェクトを作成
+6. `npm install` を backend/frontend で実行
+7. データベースマイグレーションとシードを適用（Prisma）
+8. `.env` を作成して必要な値を設定
+
+---
+
+詳細は `INSTALLATION.md` を参照してください。

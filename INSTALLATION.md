@@ -1,111 +1,99 @@
-# 📦 Installation Guide
+---
+# 📦 インストールガイド
 
-Simple step-by-step guide to install everything you need.
+このガイドでは、開発環境でアプリを動かすために必要なソフトのインストールと初期設定手順を説明します。
 
-## Step 1: Install Node.js
+## ステップ 1：Node.js をインストール
 
-1. Go to: https://nodejs.org
-2. Download **LTS version** (20.x or newer)
-3. Run installer and click "Next" until done
-4. Open terminal and check:
-   ```bash
-   node --version
-   # Should show: v20.x.x or newer
-   ```
+1. https://nodejs.org から LTS（推奨）をダウンロード
+2. インストーラーを実行して指示に従う
+3. ターミナルで確認：
+```powershell
+node --version
+# v20.x 以上が推奨
+```
 
-## Step 2: Install PostgreSQL (Database)
+## ステップ 2：PostgreSQL をインストール（データベース）
 
-1. Go to: https://www.postgresql.org/download/
-2. Download version 15 or newer
-3. During installation:
-   - Set password: `postgres123` (remember this!)
-   - Port: `5432` (default)
-   - Click "Next" until done
-4. Open terminal and check:
-   ```bash
-   psql --version
-   # Should show: psql (PostgreSQL) 15.x
-   ```
+1. https://www.postgresql.org/download/ からインストーラーを取得
+2. バージョン 15 以上を推奨
+3. インストール時にパスワードやポート（通常 5432）を設定
+4. ターミナルで確認：
+```powershell
+psql --version
+# psql (PostgreSQL) 15.x など
+```
 
-## Step 3: Install Redis
+## ステップ 3：Redis をインストール
 
-### Windows:
-1. Download: https://github.com/tporadowski/redis/releases
-2. Download `Redis-x64-5.x.x.msi`
-3. Run installer, click "Next" until done
-4. Redis will start automatically
+### Windows（推奨ビルド）
+1. https://github.com/tporadowski/redis/releases から msi をダウンロード
+2. インストーラーを実行
 
-### Mac:
+### macOS
 ```bash
 brew install redis
 brew services start redis
 ```
 
-### Linux:
+### Ubuntu / Debian
 ```bash
 sudo apt-get update
 sudo apt-get install redis-server
 sudo systemctl start redis
 ```
 
-Check Redis is running:
+動作確認：
 ```bash
 redis-cli ping
-# Should show: PONG
+# PONG が返れば OK
 ```
 
-## Step 4: Install Ngrok (for Instagram OAuth)
+## ステップ 4：Ngrok をインストール（Instagram OAuth 用）
 
-1. Go to: https://ngrok.com
-2. Sign up (free account)
-3. Download ngrok for your OS
-4. Move to a permanent folder
-5. Login with your token:
-   ```bash
-   ngrok config add-authtoken YOUR_TOKEN_HERE
-   ```
-
-## Step 5: Install Project Dependencies
-
+1. https://ngrok.com にサインアップしてダウンロード
+2. インストール後に認証トークンを設定：
 ```bash
-# Go to project folder
+ngrok config add-authtoken YOUR_TOKEN_HERE
+```
+
+## ステップ 5：プロジェクト依存パッケージをインストール
+
+```powershell
+# 作業ディレクトリへ移動
 cd "c:\Users\medal\Downloads\New folder JP"
 
-# Install backend dependencies
+# backend の依存関係をインストール
 cd backend
 npm install
 
-# Install frontend dependencies
+# frontend の依存関係をインストール
 cd ../frontend
 npm install
 ```
 
-## Step 6: Setup Database
+## ステップ 6：データベースの準備
 
-```bash
-# Go to backend folder
+```powershell
+# backend フォルダへ
 cd backend
 
-# Create database
-# Open psql:
+# psql でデータベースを作成
 psql -U postgres
-
-# In psql, run:
 CREATE DATABASE instagram_autoposter;
 \q
 
-# Run migrations
+# Prisma マイグレーションを適用
 npx prisma migrate deploy
 
-# (Optional) Add sample data
+# 任意：シードデータを追加
 npx prisma db seed
 ```
 
-## Step 7: Create Environment Files
+## ステップ 7：環境変数ファイルを作成
 
-### Backend (.env file):
-
-Create file: `backend/.env`
+### backend 用（`backend/.env`）
+以下のようなファイルを作成し、実際の値に置き換えてください：
 
 ```env
 # Database
@@ -115,80 +103,76 @@ DATABASE_URL="postgresql://postgres:postgres123@localhost:5432/instagram_autopos
 REDIS_HOST="localhost"
 REDIS_PORT=6379
 
-# JWT Secret (change this to any random string)
-JWT_SECRET="change_this_to_random_string_min_32_chars_long"
+# JWT
+JWT_SECRET="ランダムな長い文字列を設定してください"
 JWT_EXPIRES_IN="3600"
 
-# Meta/Instagram (get from META_SETUP.md)
-META_APP_ID="your_app_id_here"
-META_APP_SECRET="your_app_secret_here"
+# Meta / Instagram
+META_APP_ID="あなたの_APP_ID"
+META_APP_SECRET="あなたの_APP_SECRET"
 META_REDIRECT_URI="http://localhost:3000/api/v1/auth/instagram/callback"
 
-# Google (get from META_SETUP.md)
-GOOGLE_CLIENT_ID="your_google_client_id_here"
-GOOGLE_CLIENT_SECRET="your_google_client_secret_here"
+# Google
+GOOGLE_CLIENT_ID="あなたの_GOOGLE_CLIENT_ID"
+GOOGLE_CLIENT_SECRET="あなたの_GOOGLE_CLIENT_SECRET"
 GOOGLE_REDIRECT_URI="http://localhost:3000/api/v1/auth/google/callback"
 
-# Cloudinary (for image hosting - optional, create free account)
+# Cloudinary（任意）
 CLOUDINARY_CLOUD_NAME="your_cloud_name"
 CLOUDINARY_API_KEY="your_api_key"
 CLOUDINARY_API_SECRET="your_api_secret"
 
-# App
 PORT=3000
 NODE_ENV=development
 ```
 
-### Frontend (.env file):
-
-Create file: `frontend/.env`
+### frontend 用（`frontend/.env`）
 
 ```env
 VITE_API_URL=http://localhost:3000/api/v1
 ```
 
-## Step 8: Start Ngrok (for Instagram OAuth)
+## ステップ 8：ngrok を起動（OAuth 用）
 
-```bash
-# In a new terminal, run:
+別ターミナルで次を実行します：
+```powershell
 ngrok http 3000
-
-# Copy the HTTPS URL (like: https://abc123.ngrok.io)
-# Update backend/.env:
-META_REDIRECT_URI="https://abc123.ngrok.io/api/v1/auth/instagram/callback"
-GOOGLE_REDIRECT_URI="https://abc123.ngrok.io/api/v1/auth/google/callback"
 ```
-
-## ✅ Installation Complete!
-
-You're ready to start the application. See `README.md` for next steps.
-
-### Quick Check:
-- ✅ Node.js installed
-- ✅ PostgreSQL installed and running
-- ✅ Redis installed and running
-- ✅ Ngrok installed and running
-- ✅ Dependencies installed (npm install)
-- ✅ Database created and migrated
-- ✅ .env files created
-
-### Troubleshooting:
-
-**Problem: npm install fails**
-- Solution: Delete `node_modules` and `package-lock.json`, run `npm install` again
-
-**Problem: Database connection error**
-- Solution: Check PostgreSQL is running, check password in .env matches
-
-**Problem: Redis connection error**
-- Solution: Check Redis is running: `redis-cli ping` should return PONG
-
-**Problem: Port already in use**
-- Solution: Change PORT in backend/.env to 3001 or another number
+表示される HTTPS URL（例：`https://abc123.ngrok.io`）を `backend/.env` の `*_REDIRECT_URI` に設定してください。
 
 ---
 
-**Need help?** Check that all services are running:
-- PostgreSQL: Check in Services (Windows) or Activity Monitor (Mac)
-- Redis: Run `redis-cli ping`
-- Ngrok: Check terminal shows "Forwarding" message
+## ✅ インストール完了の確認ポイント
+
+- Node.js がインストールされている
+- PostgreSQL がインストール・起動している
+- Redis がインストール・起動している
+- ngrok がインストール・設定済み
+- backend/frontend の依存関係が `npm install` で入っている
+- データベースにマイグレーションが適用されている（`npx prisma migrate deploy`）
+
+---
+
+## トラブルシューティング（よくある問題）
+
+### `npm install` が失敗する
+- `node_modules` と `package-lock.json` を削除して再度 `npm install` を試す
+
+### データベース接続エラー
+- PostgreSQL が起動しているか、`backend/.env` の `DATABASE_URL` が正しいか確認
+
+### Redis 接続エラー
+- `redis-cli ping` が `PONG` を返すか確認
+
+### ポート競合
+- 他のプロセスが 3000 / 5173 を使っていないか確認。必要なら `backend/.env` の `PORT` を変更
+
+---
+
+## サービスの確認
+
+- PostgreSQL：OS のサービス一覧や `psql` で確認
+- Redis：`redis-cli ping` で確認
+- ngrok：ターミナルの Forwarding 表示を確認
+
+必要であれば、インストール手順を個別に補足します。
