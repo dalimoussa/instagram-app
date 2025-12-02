@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { GoogleDriveService } from '../google/google-drive.service';
+import { LocalStorageService } from '../google/local-storage.service';
 import { CreateThemeDto } from './dto/create-theme.dto';
 import { UpdateThemeDto } from './dto/update-theme.dto';
 
@@ -12,23 +12,23 @@ import { UpdateThemeDto } from './dto/update-theme.dto';
 export class ThemesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly googleDrive: GoogleDriveService,
+    private readonly localStorage: LocalStorageService,
   ) {}
 
   async create(createThemeDto: CreateThemeDto, userId: string) {
-    // For now, skip Google Drive validation - will implement later
-    // try {
-    //   await this.googleDrive.getFolderInfo(createThemeDto.folderId);
-    // } catch (error) {
-    //   throw new BadRequestException('Invalid Google Drive folder ID');
-    // }
+    // Validate local folder exists
+    try {
+      await this.localStorage.listFilesInFolder(createThemeDto.folderPath);
+    } catch (error) {
+      throw new BadRequestException('Invalid folder path or folder does not exist');
+    }
 
     const theme = await this.prisma.theme.create({
       data: {
         userId,
         name: createThemeDto.name,
         description: createThemeDto.description,
-        driveFolderId: createThemeDto.folderId,
+        localFolderPath: createThemeDto.folderPath,
       },
     });
 
@@ -75,21 +75,21 @@ export class ThemesService {
       throw new NotFoundException('Theme not found');
     }
 
-    // Skip Google Drive validation for now
-    // if (updateThemeDto.folderId) {
-    //   try {
-    //     await this.googleDrive.getFolderInfo(updateThemeDto.folderId);
-    //   } catch (error) {
-    //     throw new BadRequestException('Invalid Google Drive folder ID');
-    //   }
-    // }
+    // Validate local folder if provided
+    if (updateThemeDto.folderPath) {
+      try {
+        await this.localStorage.listFilesInFolder(updateThemeDto.folderPath);
+      } catch (error) {
+        throw new BadRequestException('Invalid folder path or folder does not exist');
+      }
+    }
 
     const updatedTheme = await this.prisma.theme.update({
       where: { id },
       data: {
         ...(updateThemeDto.name && { name: updateThemeDto.name }),
         ...(updateThemeDto.description && { description: updateThemeDto.description }),
-        ...(updateThemeDto.folderId && { driveFolderId: updateThemeDto.folderId }),
+        ...(updateThemeDto.folderPath && { localFolderPath: updateThemeDto.folderPath }),
       },
     });
 
@@ -124,7 +124,7 @@ export class ThemesService {
   }
 
   /**
-   * Sync media assets from Google Drive folder
+   * Sync media assets from local folder
    */
   async syncMediaAssets(id: string, userId: string) {
     const theme = await this.prisma.theme.findFirst({
@@ -139,12 +139,12 @@ export class ThemesService {
     }
 
     try {
-      // Get files from Google Drive
-      const files = await this.googleDrive.syncFolder(theme.driveFolderId);
+      // Get files from local folder
+      const files = await this.localStorage.syncFolder(theme.localFolderPath);
 
       if (files.length === 0) {
         return {
-          message: 'No media files found in Google Drive folder',
+          message: 'No media files found in local folder',
           synced: 0,
           skipped: 0,
         };
@@ -215,7 +215,7 @@ export class ThemesService {
       };
     } catch (error) {
       throw new BadRequestException(
-        `Failed to sync media from Google Drive: ${error.message}`,
+        `Failed to sync media from local folder: ${error.message}`,
       );
     }
   }

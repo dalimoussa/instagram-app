@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { InstagramService } from '../../instagram/instagram.service';
-import { GoogleDriveService } from '../../google/google-drive.service';
+import { LocalStorageService } from '../../google/local-storage.service';
 import { EncryptionService } from '../../encryption/encryption.service';
 import { PublishJobData } from '../queue.service';
 
@@ -16,7 +16,7 @@ export class PublishProcessor extends WorkerHost {
   constructor(
     private prisma: PrismaService,
     private instagramService: InstagramService,
-    private googleDrive: GoogleDriveService,
+    private localStorage: LocalStorageService,
     private encryption: EncryptionService,
   ) {
     super();
@@ -80,18 +80,25 @@ export class PublishProcessor extends WorkerHost {
         );
       }
 
-      // Get media asset
+      // Get media asset with theme to construct file path
       const mediaAsset = await this.prisma.mediaAsset.findUnique({
         where: { id: mediaAssetId },
+        include: {
+          theme: true,
+        },
       });
 
       if (!mediaAsset) {
         throw new Error('Media asset not found');
       }
 
-      // Download media from Google Drive
-      this.logger.log(`Downloading media from Drive: ${mediaAsset.fileName}`);
-      const mediaBuffer = await this.googleDrive.downloadFile(mediaAsset.driveFileId);
+      // Construct full file path from theme folder path and file name
+      const path = require('path');
+      const fullFilePath = path.join(mediaAsset.theme.localFolderPath, mediaAsset.fileName);
+
+      // Read media from local storage
+      this.logger.log(`Reading media from local storage: ${fullFilePath}`);
+      const mediaBuffer = await this.localStorage.readFile(fullFilePath);
 
       // Publish to Instagram
       const postType = await this.detectPostType(mediaAsset);

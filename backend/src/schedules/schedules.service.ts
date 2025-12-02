@@ -228,7 +228,7 @@ export class SchedulesService {
     }
 
     if (schedule.theme.mediaAssets.length === 0) {
-      throw new Error('No unused media available. Please sync media from Google Drive first.');
+      throw new Error('No unused media available. Please sync media from the local folder first.');
     }
 
     // Force execute by updating scheduledTime to now

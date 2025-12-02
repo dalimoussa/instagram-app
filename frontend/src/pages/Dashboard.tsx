@@ -31,10 +31,10 @@ export default function Dashboard() {
     queryFn: () => postsAPI.getAll({ limit: 10 }),
   });
 
-  const accounts = accountsData?.data || [];
-  const themes = themesData?.data || [];
-  const schedules = schedulesData?.data || [];
-  const recentPosts = postsData?.data || [];
+  const accounts = Array.isArray(accountsData?.data) ? accountsData?.data : [];
+  const themes = Array.isArray(themesData?.data) ? themesData?.data : [];
+  const schedules = Array.isArray(schedulesData?.data) ? schedulesData?.data : [];
+  const recentPosts = Array.isArray(postsData?.data) ? postsData?.data : [];
 
   // Calculate stats
   const activeAccounts = accounts.filter((acc: any) => acc.isActive).length;

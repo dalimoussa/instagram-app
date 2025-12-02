@@ -260,8 +260,28 @@ export default function Schedules() {
       queryClient.invalidateQueries({ queryKey: ['schedules'] });
       addNotification('success', 'Schedule execution started!');
     },
-    onError: () => {
-      addNotification('error', 'Failed to execute schedule');
+    onError: (error: any) => {
+      console.error('Schedule execution error:', error);
+      
+      // Check if the error is about missing media
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to execute schedule';
+      
+      if (errorMessage.includes('No unused media available') || errorMessage.includes('sync media')) {
+        // Show alert about missing media
+        alert(
+          '⚠️ No Media Available\n\n' +
+          'There is no media synced for this theme.\n\n' +
+          'Please go to the Themes page and:\n' +
+          '1. Make sure your theme has a folder path set\n' +
+          '2. Add some images or videos to that folder\n' +
+          '3. Click the "Sync Media" button to import the files\n\n' +
+          'Then try executing the schedule again.'
+        );
+        addNotification('error', 'No media available. Please sync media from your theme folder.');
+      } else {
+        addNotification('error', errorMessage);
+      }
+      
       setIsProgressModalOpen(false);
       setExecutingSchedule(null);
     },

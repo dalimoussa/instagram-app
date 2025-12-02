@@ -11,5 +11,5 @@ export class CreateThemeDto {
 
   @IsString()
   @IsNotEmpty()
-  folderId: string;
+  folderPath: string;
 }

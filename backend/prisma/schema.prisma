@@ -107,8 +107,7 @@ model Theme {
   
   name              String
   description       String?
-  driveFolderId     String   @map("drive_folder_id")
-  driveWebViewLink  String?  @map("drive_webview_link")
+  localFolderPath   String   @map("local_folder_path")
   
   isActive          Boolean  @default(true) @map("is_active")
   lastSyncAt        DateTime? @map("last_sync_at")

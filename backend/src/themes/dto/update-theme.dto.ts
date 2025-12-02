@@ -11,5 +11,5 @@ export class UpdateThemeDto {
 
   @IsString()
   @IsOptional()
-  folderId?: string;
+  folderPath?: string;
 }

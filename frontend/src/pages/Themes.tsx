@@ -8,8 +8,7 @@ interface Theme {
   id: string;
   name: string;
   description?: string;
-  driveFolderId: string;
-  driveFolderUrl?: string;
+  localFolderPath: string;
   mediaCount: number;
   createdAt: string;
 }
@@ -22,7 +21,7 @@ export default function Themes() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    driveFolderId: '',
+    folderPath: '',
   });
 
   // Fetch themes
@@ -39,7 +38,7 @@ export default function Themes() {
       const payload = {
         name: data.name,
         description: data.description || undefined,
-        folderId: data.driveFolderId,
+        folderPath: data.folderPath,
       };
       return editingTheme
         ? themesAPI.update(editingTheme.id, payload)
@@ -87,11 +86,11 @@ export default function Themes() {
       setFormData({
         name: theme.name,
         description: theme.description || '',
-        driveFolderId: theme.driveFolderId,
+        folderPath: theme.localFolderPath,
       });
     } else {
       setEditingTheme(null);
-      setFormData({ name: '', description: '', driveFolderId: '' });
+      setFormData({ name: '', description: '', folderPath: '' });
     }
     setIsModalOpen(true);
   };
@@ -122,7 +121,7 @@ export default function Themes() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Content Themes</h1>
           <p className="text-gray-600 mt-2">
-            Organize your content into themes with Google Drive folders
+            Organize your content into themes with local folders
           </p>
         </div>
         <button
@@ -142,7 +141,7 @@ export default function Themes() {
             No Themes Created Yet
           </h3>
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
-            Create themes to organize your content from Google Drive folders. Each
+            Create themes to organize your content from local folders. Each
             theme can contain images and videos for automated posting.
           </p>
           <button
@@ -180,7 +179,7 @@ export default function Themes() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Folder className="w-4 h-4" />
-                  <span className="truncate">Google Drive Folder</span>
+                  <span className="truncate">Folder</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
                   Created {new Date(theme.createdAt).toLocaleDateString()}
@@ -193,7 +192,7 @@ export default function Themes() {
                   onClick={() => syncMutation.mutate(theme.id)}
                   disabled={syncMutation.isPending}
                   className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                  title="Sync media from Google Drive"
+                  title="Sync media from local folder"
                 >
                   <RefreshCw className={`w-4 h-4 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
                   Sync
@@ -259,18 +258,68 @@ export default function Themes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Google Drive Folder ID *
+                  Local Folder Path *
                 </label>
-                <input
-                  type="text"
-                  required
-                  className="input"
-                  placeholder="Paste folder ID from Drive URL"
-                  value={formData.driveFolderId}
-                  onChange={(e) => setFormData({ ...formData, driveFolderId: e.target.value })}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    required
+                    className="input flex-1"
+                    placeholder="e.g., C:\Media\Videos or /home/user/videos"
+                    value={formData.folderPath}
+                    onChange={(e) => setFormData({ ...formData, folderPath: e.target.value })}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      (input as any).webkitdirectory = true;
+                      (input as any).directory = true;
+                      input.multiple = true;
+                      input.onchange = (e: any) => {
+                        const files = e.target.files;
+                        if (files && files.length > 0) {
+                          const file = files[0];
+                          let folderPath = '';
+                          
+                          // Try to get the full path (works in Electron and some browsers)
+                          if (file.path) {
+                            // Extract folder path from full file path
+                            const fullPath = file.path.replace(/\//g, '\\');
+                            const lastSlash = fullPath.lastIndexOf('\\');
+                            if (lastSlash !== -1) {
+                              folderPath = fullPath.substring(0, lastSlash);
+                            }
+                          } 
+                          
+                          // Fallback: ask user to paste the path manually
+                          if (!folderPath || folderPath === file.name) {
+                            const userPath = prompt(
+                              'Please paste the full folder path:\n\nExample: C:\\Users\\medal\\Pictures\\test',
+                              ''
+                            );
+                            if (userPath) {
+                              folderPath = userPath;
+                            }
+                          }
+                          
+                          if (folderPath) {
+                            setFormData({ ...formData, folderPath });
+                          }
+                        }
+                      };
+                      input.click();
+                    }}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors flex items-center gap-2 shrink-0"
+                    title="Browse for folder"
+                  >
+                    <Folder className="w-5 h-5" />
+                    Browse
+                  </button>
+                </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  The ID from your Google Drive folder URL (after folders/)
+                  Absolute path to the folder containing your media files
                 </p>
               </div>
 
