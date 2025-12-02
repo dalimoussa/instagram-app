@@ -6,6 +6,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { GoogleModule } from '../google/google.module';
 import { PrismaModule } from '../prisma/prisma.module';
+import { IgAccountsModule } from '../ig-accounts/ig-accounts.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     JwtModule.register({}), // Configuration handled in service
     GoogleModule,
     PrismaModule,
+    IgAccountsModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
