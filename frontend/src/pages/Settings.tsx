@@ -66,20 +66,8 @@ export default function Settings() {
   // Fetch license info
   const { data: licenseData, isLoading: licenseLoading } = useQuery({
     queryKey: ['license'],
-    queryFn: () => licensesAPI.validate(user?.email || ''),
-    enabled: !!user?.email,
-  });
-
-  // Sync license mutation
-  const syncLicenseMutation = useMutation({
-    mutationFn: () => licensesAPI.sync(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['license'] });
-      addNotification('success', 'License synced successfully!');
-    },
-    onError: () => {
-      addNotification('error', 'Failed to sync license');
-    },
+    queryFn: () => licensesAPI.getStatus(),
+    enabled: !!user?.email && activeTab === 'profile',
   });
 
   // Change password mutation
@@ -434,29 +422,12 @@ export default function Settings() {
                     </div>
                   </div>
                 </div>
-
-                {/* Sync Button */}
-                <button
-                  onClick={() => syncLicenseMutation.mutate()}
-                  disabled={syncLicenseMutation.isPending}
-                  className="btn-secondary w-full flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${syncLicenseMutation.isPending ? 'animate-spin' : ''}`} />
-                  Sync License
-                </button>
               </div>
             ) : (
               <div className="text-center py-8">
                 <XCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
                 <p className="text-gray-600 mb-4">No active license found</p>
-                <button
-                  onClick={() => syncLicenseMutation.mutate()}
-                  disabled={syncLicenseMutation.isPending}
-                  className="btn-primary flex items-center gap-2 mx-auto"
-                >
-                  <RefreshCw className={`w-4 h-4 ${syncLicenseMutation.isPending ? 'animate-spin' : ''}`} />
-                  Check for License
-                </button>
+                <p className="text-sm text-gray-500">Contact support to activate a license</p>
               </div>
             )}
           </div>
