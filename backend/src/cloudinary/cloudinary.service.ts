@@ -1,20 +1,32 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
+import { AppSettingsService } from '../app-settings/app-settings.service';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
-export class CloudinaryService {
+export class CloudinaryService implements OnModuleInit {
   private readonly logger = new Logger(CloudinaryService.name);
 
-  constructor(private readonly configService: ConfigService) {
-    // Configure Cloudinary
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly appSettingsService: AppSettingsService,
+  ) {}
+
+  async onModuleInit() {
+    // Configure Cloudinary with settings from database or env
+    await this.configureCloudinary();
+  }
+
+  private async configureCloudinary() {
+    const config = await this.appSettingsService.getCloudinaryConfig();
+    
     cloudinary.config({
-      cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.configService.get('CLOUDINARY_API_KEY'),
-      api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
+      cloud_name: config.cloudName,
+      api_key: config.apiKey,
+      api_secret: config.apiSecret,
     });
 
     this.logger.log('✅ Cloudinary configured successfully');

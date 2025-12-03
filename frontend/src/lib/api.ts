@@ -178,3 +178,43 @@ export const licensesAPI = {
   
   sync: () => api.post('/licenses/sync'),
 };
+
+// Settings API (Admin Only)
+export const settingsAPI = {
+  getSettings: () => api.get('/settings'),
+  
+  updateSettings: (data: {
+    instagramAppId?: string;
+    instagramAppSecret?: string;
+    instagramRedirectUri?: string;
+    instagramApiVersion?: string;
+    publicUrl?: string;
+    cloudinaryCloudName?: string;
+    cloudinaryApiKey?: string;
+    cloudinaryApiSecret?: string;
+  }) => api.put('/settings', data),
+  
+  restartServer: () => api.post('/settings/restart'),
+  
+  getStatus: () => api.get('/settings/status'),
+};
+
+// Settings API
+export const settingsAPI = {
+  getSettings: () => api.get('/settings'),
+  
+  updateSettings: (data: {
+    instagramAppId?: string;
+    instagramAppSecret?: string;
+    instagramRedirectUri?: string;
+    instagramApiVersion?: string;
+    publicUrl?: string;
+    cloudinaryCloudName?: string;
+    cloudinaryApiKey?: string;
+    cloudinaryApiSecret?: string;
+  }) => api.put('/settings', data),
+  
+  restartServer: () => api.post('/settings/restart'),
+  
+  getStatus: () => api.get('/settings/status'),
+};

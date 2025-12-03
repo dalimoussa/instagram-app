@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosInstance } from 'axios';
 import { EncryptionService } from '../encryption/encryption.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { AppSettingsService } from '../app-settings/app-settings.service';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -40,6 +41,7 @@ export class InstagramService {
     private configService: ConfigService,
     private encryptionService: EncryptionService,
     private cloudinaryService: CloudinaryService,
+    private appSettingsService: AppSettingsService,
   ) {
     this.apiVersion = this.configService.get('INSTAGRAM_API_VERSION') || 'v18.0';
     this.httpClient = axios.create({

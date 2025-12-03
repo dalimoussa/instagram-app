@@ -11,6 +11,34 @@ datasource db {
 }
 
 // ============================================
+// Application Settings (API Configuration)
+// ============================================
+
+model AppSettings {
+  id                    String   @id @default(uuid())
+  
+  // Instagram Graph API Settings (encrypted)
+  instagramAppId        String?  @map("instagram_app_id")
+  instagramAppSecret    String?  @map("instagram_app_secret") // AES-256-GCM encrypted
+  instagramRedirectUri  String?  @map("instagram_redirect_uri")
+  instagramApiVersion   String?  @default("v21.0") @map("instagram_api_version")
+  publicUrl             String?  @map("public_url")
+  
+  // Cloudinary Settings (encrypted)
+  cloudinaryCloudName   String?  @map("cloudinary_cloud_name")
+  cloudinaryApiKey      String?  @map("cloudinary_api_key")
+  cloudinaryApiSecret   String?  @map("cloudinary_api_secret") // encrypted
+  
+  // System Settings
+  isActive              Boolean  @default(true) @map("is_active")
+  
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  
+  @@map("app_settings")
+}
+
+// ============================================
 // User Management
 // ============================================
 

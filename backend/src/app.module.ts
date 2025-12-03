@@ -14,6 +14,7 @@ import { PostsModule } from './posts/posts.module';
 import { InsightsModule } from './insights/insights.module';
 import { LicensesModule } from './licenses/licenses.module';
 import { HealthModule } from './health/health.module';
+import { AppSettingsModule } from './app-settings/app-settings.module';
 
 // Infrastructure Modules
 import { QueueModule } from './queue/queue.module';
@@ -49,6 +50,7 @@ import { EncryptionModule } from './encryption/encryption.module';
     InsightsModule,
     LicensesModule,
     HealthModule,
+    AppSettingsModule,
     
     // Infrastructure modules
     QueueModule,
