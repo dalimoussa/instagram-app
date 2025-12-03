@@ -24,7 +24,16 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new Error('User already exists');
+      // If user exists, update password only (preserve role)
+      const passwordHash = await bcrypt.hash(password, 10);
+      const updatedUser = await this.prisma.user.update({
+        where: { email },
+        data: {
+          passwordHash,
+          displayName: displayName || existingUser.displayName,
+        },
+      });
+      return this.generateTokens(updatedUser.id, updatedUser.email, updatedUser.role);
     }
 
     // Verify license if provided
