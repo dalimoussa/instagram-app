@@ -27,8 +27,15 @@ const queryClient = new QueryClient({
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const accessToken = localStorage.getItem('accessToken');
 
-  if (!isAuthenticated) {
+  // Check both Zustand state and localStorage for token
+  if (!isAuthenticated || !accessToken) {
+    // Clear everything if state is inconsistent
+    if (!accessToken) {
+      localStorage.clear();
+      sessionStorage.clear();
+    }
     return <Navigate to="/login" replace />;
   }
 
